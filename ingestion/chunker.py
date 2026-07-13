@@ -1,5 +1,3 @@
-from pdf_reader import read_pdf
-
 def chunk_text(text:str,
                chunk_size:int= 1000,
                overlap:int= 200
