@@ -20,7 +20,17 @@ def search_documents(
             )
             results=cur.fetchall()
             return results
-        
+
+def build_context(
+        documents:list[tuple[str,str]]
+                )->str:
+    context=[]
+    for filename,chunk in documents:
+        context.append(
+            f"[Source:{filename}]\n{chunk}"
+        )
+    return "\n\n".join(context)
+
 if __name__=="__main__":
     results=search_documents("sanal bellek nedir")
 
