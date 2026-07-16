@@ -1,4 +1,5 @@
 from foundry_local_sdk import Configuration, FoundryLocalManager
+import inspect
 
 FoundryLocalManager.initialize(
     Configuration(
@@ -17,3 +18,4 @@ for variant in model.variants:
     print("ID:", variant.id)
     print("Cached:", variant.info.cached)
     print(dir(variant.info))
+    print(inspect.signature(model.select_variant))

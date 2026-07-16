@@ -13,9 +13,14 @@ __pycache__/
 .vscode/
 .idea/
 
+*.db
+
 # Logs
 *.log
 
+data/vector_cache
+
+logs/
 # OS
 .DS_Store
 Thumbs.db
