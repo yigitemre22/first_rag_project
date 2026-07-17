@@ -1,4 +1,4 @@
-from embeddings.embedding import generate_embeddings
+from llm.embedding_client import generate_embeddings
 from database.db import get_connection
 
 def search_documents(

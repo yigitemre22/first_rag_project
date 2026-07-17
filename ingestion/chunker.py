@@ -1,7 +1,8 @@
-def chunk_text(text:str,
-               chunk_size:int= 1000,
-               overlap:int= 200
-               )->list[str]:
+def chunk_text(
+            text:str,
+            chunk_size:int= 1000,
+            overlap:int= 200
+            )->list[str]:
     """
     split text into overlapping chunks.
     """
