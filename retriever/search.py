@@ -3,7 +3,7 @@ from llm.embedding_client import generate_embedding
 
 def search_documents(
         query:str,
-        limit:int=5,
+        limit:int=15,
                 ):
     
     query_embedding=generate_embedding(query)
@@ -17,6 +17,8 @@ def search_documents(
                 select
                 id,
                 filename,
+                page,
+                chunk_index,
                 chunk,
                 embedding <=> %s::vector as distance
 
@@ -32,16 +34,26 @@ def search_documents(
                     limit
                 )
             )
-            return cur.fetchall()
+            results= cur.fetchall()
+
+            for row in results:
+                print("="*50)
+                print(f"Page:{row[2]}")
+                print(row[4][:500])
+                print()
+            return results
+            
 
 if __name__=="__main__":
     results=search_documents("bellek nedir")
 
     for row in results:
-        print("="*50)
+        print("="*60)
         print(f"ID:       {row[0]}")
         print(f"File:     {row[1]}")
-        print(f"Distance: {row[3]:.4f}")
+        print(f"Page:     {row[2]}")
+        print(f"Chunk:    {row[3]}")
+        print(f"Distance: {row[5]:.4f}")
         print()
-        print(row[2][:300])
+        print(row[4][:300])
         print()

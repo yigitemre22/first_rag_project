@@ -3,6 +3,8 @@ from database.db import get_connection
 
 def insert_document(
         filename:str,
+        page:int,
+        chunk_index:int,
         chunk:str,
         embedding:List[float],
         )->int:
@@ -15,14 +17,16 @@ def insert_document(
             cur.execute(
                 """
                 insert into documents
-                (filename,chunk,embedding)
+                (filename,page,chunk_index,chunk,embedding)
 
-                values (%s,%s,%s)
+                values (%s,%s,%s,%s,%s)
 
                 returning id;
                 """,
                 (
                     filename,
+                    page,
+                    chunk_index,
                     chunk,
                     embedding_str,
                 ),
@@ -42,6 +46,8 @@ def get_document(document_id:int):
                 select
                 id,
                 filename,
+                page,
+                chunk_index,
                 chunk,
                 created_at
                 from documents

@@ -1,7 +1,8 @@
 from openai import OpenAI
+from llm.foundry_utils import get_foundry_base_url
 
 client=OpenAI(
-    base_url="http://127.0.0.1:49268/v1",
+    base_url=get_foundry_base_url(),
     api_key="foundry"
 )
 

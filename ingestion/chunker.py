@@ -1,5 +1,5 @@
 def chunk_text(
-            text:str,
+            pages:str,
             chunk_size:int= 1000,
             overlap:int= 200
             )->list[str]:
@@ -13,11 +13,25 @@ def chunk_text(
         raise ValueError("overlap değeri 0'dan büyük ve chunksize değerinden küçük olmalıdır")
    
     chunks= []
-    start= 0
+    chunk_index=1
 
-    while start < len(text):
-        chunk=text[start:start+chunk_size]
-        chunks.append(chunk)
-        start+=chunk_size-overlap
+    for page in pages:
+        text=page["text"]
+        page_number=page["page"]
+        
+        start= 0
+
+        while start < len(text):
+            chunk=text[start:start+chunk_size]
+            chunks.append(
+                    {
+                        "page":page_number,
+                        "chunk_index":chunk_index,
+                        "chunk":chunk,
+                    }
+                )
+
+            chunk_index+=1
+            start+=chunk_size-overlap
 
     return chunks
