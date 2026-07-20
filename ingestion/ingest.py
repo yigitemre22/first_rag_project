@@ -2,38 +2,65 @@ from pathlib import Path
 from ingestion.pdf_reader import read_pdf_pages
 from ingestion.chunker import chunk_text
 from llm.embedding_client import generate_embeddings
-from database.vectore_store import insert_document
-
+from database.vectore_store import insert_document,document_exists
 if __name__=="__main__":
     BASE_DIR=Path(__file__).resolve().parent.parent
-    pdf_path=BASE_DIR/"documents"/"bellek.pdf"
-
-    pages=read_pdf_pages(pdf_path)
-
-    chunks=chunk_text(pages)
-
-    embeddings=generate_embeddings(
-        [c["chunk"] for c in chunks]
-    )
     
-    filename=pdf_path.name
+    documents_dir=BASE_DIR / "documents"
 
-    for chunk_info,embedding in zip(chunks,embeddings):
+    pdf_files=list(documents_dir.glob("*.pdf"))
 
-        doc_id=insert_document(
-            filename=filename,
-            page=chunk_info["page"],
-            chunk_index=chunk_info["chunk_index"],
-            chunk=chunk_info["chunk"],
-            embedding=embedding,
+    if not pdf_files:
+        print("no pdf files found")
+        exit()
+    
+
+    for pdf_path in pdf_files:
+        
+        filename=pdf_path.name
+        if document_exists(filename):
+            print(f"✅ {filename} already exists in database.")
+            print("Skipping...\n")
+            continue
+
+
+        pages=read_pdf_pages(pdf_path)
+
+        chunks=[]
+
+        for page in pages:
+            page_chunks=chunk_text(page["text"])
+
+            for i,chunk in enumerate(page_chunks,start=1):
+                chunks.append(
+                    {
+                        "page":page["page"],
+                        "chunk_id":i,
+                        "chunk":chunk,
+                    }
+                )
+
+        embeddings=generate_embeddings(
+            [c["chunk"] for c in chunks]
         )
 
-        print(
-            f"[Page {chunk_info['page']}]"
-            f"[Chunk{chunk_info['chunk_index']}]"
-            f"Inserted document id={doc_id}"
-        )
-    
-    print(f"\n{filename} uploaded to databese")
-    print(f"Total chunks:{len(chunks)}")
+        filename=pdf_path.name
+
+        for info,embedding in zip(chunks,embeddings):
+            doc_id=insert_document(
+                filename,
+                info["page"],
+                info["chunk_id"],
+                info["chunk"],
+                embedding,
+            )
+
+            print(
+                f"[Page {info['page']}]"
+                f"[Chunk {info['chunk_id']}]"
+                f"[Insertred document id={doc_id}"
+            )
+        
+        print(f"\n{filename} uploaded to database")
+        print(f"total chunks:{len(chunks)}")
 

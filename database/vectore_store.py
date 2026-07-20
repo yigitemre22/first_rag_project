@@ -75,5 +75,20 @@ def clear_documents():
         conn.commit()
 
 
+def document_exists(filename:str)->bool:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                select exists(
+                select 1 
+                from documents
+                where filename=%s                
+                )
+                """,
+                (filename,),
+            )
+            return cur.fetchone()[0]
+
 if __name__=="__main__":
     print("vector store ready")
