@@ -9,38 +9,84 @@
 </head>
 
 <body>
-
+    
 <div class="container">
 
-    <h1>🤖 Local RAG Assistant</h1>
+    <aside class="sidebar">
 
-    <div id="chat-box">
-            <div class="avatar">
-        🤖
-    </div>
+        <h2>🤖 Local RAG</h2>
 
-    <div class="bubble">
-
-        Merhaba 👋<br><br>
-
-        Ben Local RAG Assistant.
-
-        Belgeleriniz hakkında soru sorabilirsiniz.
-    </div>
-
-    <div class="input-area">
-
-        <input
-            id="question"
-            type="text"
-            placeholder="Bir soru yaz..."
-        >
-
-        <button id="send-btn">
-            Gönder
+        <button id="new-chat">
+            + New Chat
         </button>
 
-    </div>
+        <hr>
+
+        <h3>Documents</h3>
+
+        <div id="document-list">
+
+            <div class="document">
+                📄 bellek.pdf
+            </div>
+
+        </div>
+
+        <hr>
+
+        <label class="upload-label">
+
+    📤 Upload PDF
+
+    <input
+        type="file"
+        id="pdf-upload"
+        accept=".pdf"
+        hidden
+        >
+
+        </label>
+
+    </aside>
+
+    <main class="chat-area">
+
+        <div id="chat-box">
+
+            <div class="message bot">
+
+                <div class="avatar">
+                    🤖
+                </div>
+
+                <div class="bubble">
+
+                    Merhaba 👋<br><br>
+
+                    Belgeleriniz hakkında soru sorabilirsiniz.
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="input-area">
+
+            <input
+                id="question"
+                placeholder="Bir soru yaz..."
+            >
+
+            <button id="send-btn">
+
+                Gönder
+
+            </button>
+
+        </div>
+
+    </main>
 
 </div>
 

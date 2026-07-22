@@ -1,8 +1,11 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request,UploadFile,File
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from rag.pipeline import answer_question
+import shutil
+from pathlib import Path
+from ingestion.ingest import ingest_pdf
 
 app = FastAPI()
 
@@ -43,3 +46,23 @@ def chat(data:ChatRequest):
         "answer":answer,
         "sources":sources
     }
+
+@app.post("/upload")
+def upload_pdf(file:UploadFile=File(...)):
+
+    documents=Path("documents")
+
+    documents.mkdir(exist_ok=True)
+
+    filepath=documents / file.filename
+
+    with open(filepath,"wb") as buffer:
+
+        shutil.copyfileobj(file.file,buffer)
+
+    ingest_pdf(filepath)
+    
+    return{
+        "message":"uploaded",
+        "filename":file.filename
+    }        

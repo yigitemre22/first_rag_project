@@ -1,6 +1,7 @@
 const sendBtn = document.getElementById("send-btn");
 const questionInput = document.getElementById("question");
 const chatBox = document.getElementById("chat-box");
+const pdfUpload=document.getElementById("pdf-upload");
 
 sendBtn.addEventListener("click", sendQuestion);
 
@@ -9,6 +10,8 @@ questionInput.addEventListener("keydown", (e)=>{
         sendQuestion();
     }
 });
+
+pdfUpload.addEventListener("change",uploadPDF);
 
 function scrollBottom(){
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -207,3 +210,25 @@ async function sendQuestion(){
 
     scrollBottom();
 }
+
+async function uploadPDF() {
+    console.log("Upload başladı");
+
+    const file=pdfUpload.files[0];
+
+    if(!file) return;
+
+    const formData=new FormData();
+
+    formData.append("file",file)
+
+    const response =await fetch("/upload",{
+            method:"POST",
+            body:formData
+    });
+
+    const data= await response.json();
+
+    alert(`${data.filename} uploaded.`)
+}
+
