@@ -3,6 +3,7 @@ from llm.embedding_client import generate_embedding
 
 def search_documents(
         query:str,
+        filename:str |  None=None,
         limit:int=15,
                 ):
     
@@ -12,28 +13,49 @@ def search_documents(
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                select
-                id,
-                filename,
-                page,
-                chunk_index,
-                chunk,
-                embedding <=> %s::vector as distance
-
-                from documents
-                
-                order by embedding <=> %s::vector
-
-                limit %s;
-                """,
-                (
-                    embedding_str,
-                    embedding_str,
-                    limit
+            if filename:
+                cur.execute(
+                    """
+                    select
+                    id,
+                    filename,
+                    page,
+                    chunk_index,
+                    chunk,
+                    embedding <=> %s::vector as distance
+                    from documents
+                    where filename =%s
+                    order by embedding <=> %s::vector
+                    limit %s;
+                    """,
+                    (
+                        embedding_str,
+                        filename,
+                        embedding_str,
+                        limit
+                    ),
                 )
-            )
+            else:
+                cur.execute(
+                    """
+                    select 
+                        id,
+                        filename,
+                        page,
+                        chunk_index,
+                        chunk,
+                        embedding <=> %s::vector as distance
+                    from documents
+                    order by embedding <=> %s::vector
+                    limit %s;
+                    """,
+                (
+                     embedding_str,
+                     embedding_str,
+                     limit,
+                ),
+                )
+            print("Searching in:", filename)
             results= cur.fetchall()
 
             for row in results:

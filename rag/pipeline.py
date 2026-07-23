@@ -10,7 +10,10 @@ from memory.conversation import(
     get_recent_history,
     build_search_query,
 )
-def answer_question(question:str)->str:
+def answer_question(
+        question:str,
+        filename:str |None=None,
+    ):
     add_message(
         "user",
         question,

@@ -90,5 +90,18 @@ def document_exists(filename:str)->bool:
             )
             return cur.fetchone()[0]
 
+
+def get_documents():
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                    select distinct filename
+                    from documents
+                    order by filename;
+                """)
+
+            return [row[0] for row in cur.fetchall()]
+
 if __name__=="__main__":
     print("vector store ready")

@@ -6,6 +6,8 @@ from rag.pipeline import answer_question
 import shutil
 from pathlib import Path
 from ingestion.ingest import ingest_pdf
+from database.vectore_store import get_documents
+from memory.chat_memory import clear_history
 
 app = FastAPI()
 
@@ -19,6 +21,7 @@ templates = Jinja2Templates(directory="templates")
 
 class ChatRequest(BaseModel):
     question:str
+    filename:str |None=None
 
 @app.get("/")
 def home(request: Request):
@@ -29,7 +32,7 @@ def home(request: Request):
 
 @app.post("/chat")
 def chat(data:ChatRequest):
-    answer,documents=answer_question(data.question)
+    answer,documents=answer_question(data.question,data.filename,)
 
     sources=[]
 
@@ -66,3 +69,18 @@ def upload_pdf(file:UploadFile=File(...)):
         "message":"uploaded",
         "filename":file.filename
     }        
+
+@app.get("/documents")
+def documents():
+
+    return{
+        "documents":get_documents()
+    }
+
+@app.post("/new-chat")
+def new_chat():
+    clear_history()
+
+    return{
+        "message":"ok"
+    }
