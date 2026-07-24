@@ -87,7 +87,9 @@ async function typeWriter(element,text){
 
         element.innerHTML += text[i];
 
-        scrollBottom();
+        if(isNearBottom()){
+            scrollBottom();
+        }
 
         await new Promise(r=>setTimeout(r,10));
     }
@@ -238,7 +240,7 @@ async function uploadPDF() {
 
     const data= await response.json();
 
-    alert(`${data.filename} uploaded.`)
+    showToast(`${data.filename} uploaded.`)
 
     await loadDocuments();
 }
@@ -251,21 +253,48 @@ async function loadDocuments() {
 
     const list=document.getElementById("document-list");
 
-    document.getElementById("selected-file").innerText=selectedDocument ? "Selected: "+selectedDocument : "All Documents";
-
     list.innerHTML= "";
 
     data.documents.forEach(doc=>{
 
-      list.innerHTML += `
-<div
-    class="document ${selectedDocument === doc ? "selected" : ""}"
-    onclick="selectDocument('${doc}')"
->
-    📄 ${doc}
-</div>
-`;
+      const row=document.createElement("div");
+      row.className="document-row";
+
+      const div=document.createElement("div");
+      div.className="document";
+
+      if (selectDocument===doc){
+        div.classList.add("selected");
+      }
+      div.textContent="📄 " + doc;
+
+      div.addEventListener("click",()=>{
+        selectDocument(doc);
+      });
+
+      const deleteBtn=document.createElement("button");
+      deleteBtn.className="delete-btn";
+      deleteBtn.textContent="🗑️";
+
+      deleteBtn.addEventListener("click",async(e)=>{
+        e.stopPropagation();//belgeyi seçmeme
+
+        const ok=confirm(`${doc} is that document delete?`);
+
+        if(!ok) return;
+
+        await deleteDocuments(doc);
+      });
+      row.appendChild(div);
+      row.appendChild(deleteBtn);
+
+      list.appendChild(row);
     });
+
+    document.getElementById("selected-file").innerText=
+        selectedDocument 
+        ? "Selected:" + selectedDocument
+        : "All Document";
 }
 
 function selectDocument(doc) {
@@ -289,7 +318,7 @@ async function newChat() {
         method:"POST"
     });
 
-    selectDocument=null;
+    selectedDocument=null;
 
     await loadDocuments();
     
@@ -310,4 +339,37 @@ async function newChat() {
         </div>
     `;
     questionInput.focus();
+}
+
+async function deleteDocuments(filename) {
+    
+    const response=await fetch(`/document/${encodeURIComponent(filename)}`,{method:"DELETE"});
+
+    if (selectDocument===filename){
+        selectedDocument=null;
+    }
+    
+    showToast(`${filename} deleted`)
+
+    await loadDocuments();
+}
+
+function showToast(message,type="success"){
+    const container=document.getElementById("toast-container");
+
+    const toast=document.createElement("div");
+
+    toast.className=`toast ${type}`;
+
+    toast.textContent=message;
+
+    container.appendChild(toast);
+
+    setTimeout(()=>{
+        toast.remove();
+    },3000);
+}
+
+function isNearBottom(){
+    return chatBox.scrollHeight - chatBox.scrollTop -chatBox.clientHeight<80;
 }

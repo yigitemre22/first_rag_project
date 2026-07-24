@@ -20,7 +20,14 @@ def answer_question(
     )
     search_query=build_search_query()
     print(f"\nSearch Query: {search_query}")
-    documents=search_documents(search_query)
+    documents=search_documents(search_query,filename=filename)
+
+    if not documents:
+        add_message(
+            "assistant",
+            "I don't know."
+        )
+        return "I don't know", []
 
     context="\n\n".join(
                 row[4] for row in documents

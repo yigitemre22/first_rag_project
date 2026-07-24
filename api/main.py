@@ -6,8 +6,10 @@ from rag.pipeline import answer_question
 import shutil
 from pathlib import Path
 from ingestion.ingest import ingest_pdf
-from database.vectore_store import get_documents
-from memory.chat_memory import clear_history
+from database.vectore_store import get_documents,delete_document_by_filename
+from memory.chat_memory import clear_history as clear_chat_history
+from memory.conversation import clear_history as clear_conversation_history
+
 
 app = FastAPI()
 
@@ -79,8 +81,23 @@ def documents():
 
 @app.post("/new-chat")
 def new_chat():
-    clear_history()
+    clear_chat_history()
+    clear_conversation_history()
 
     return{
         "message":"ok"
+    }
+
+
+@app.delete("/document/{filename}")
+def delete_document(filename : str):
+    delete_document_by_filename(filename)
+
+    filepath=Path("documents")/filename
+
+    if filepath.exists():
+        filepath.unlink()
+
+    return{
+        "message":"document deleted"
     }

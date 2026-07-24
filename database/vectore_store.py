@@ -103,5 +103,16 @@ def get_documents():
 
             return [row[0] for row in cur.fetchall()]
 
+
+def delete_document_by_filename(filename:str):
+    with get_connection()as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                    delete from documents where filename=%s
+                    """,
+                    (filename,),)
+            conn.commit()
+            
+
 if __name__=="__main__":
     print("vector store ready")
