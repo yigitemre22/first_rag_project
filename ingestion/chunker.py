@@ -1,7 +1,7 @@
 def chunk_text(
     text: str,
-    chunk_size: int = 1000,
-    overlap: int = 200,
+    chunk_size: int = 400,
+    overlap: int = 50,
 ) -> list[str]:
 
     if chunk_size <= 0:

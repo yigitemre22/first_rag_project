@@ -19,12 +19,15 @@ def clear_history():
     _history.clear()
 
 
-def build_search_query()->str:
-    questions=[
+def build_search_query(current_question:str)->str:
+    previous_questions=[
        m["content"]
        for m in _history
        if m["role"]=="user"
-       ]
+       ][-2:]
+
+    if len(previous_questions)<=1:
+        return current_question
 
     
-    return " ".join(questions[-3:])
+    return previous_questions[-2]+ " " + current_question

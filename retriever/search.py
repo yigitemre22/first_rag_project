@@ -1,70 +1,86 @@
 from database.db import get_connection
 from llm.embedding_client import generate_embedding
+import psycopg
 
 def search_documents(
         query:str,
         filename:str |  None=None,
-        limit:int=15,
+        limit:int=10,
                 ):
-    
-    query_embedding=generate_embedding(query)
 
-    embedding_str="["+",".join(map(str,query_embedding))+"]"
+    try:
+        query_embedding=generate_embedding(query)
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            if filename:
-                cur.execute(
-                    """
-                    select
-                    id,
-                    filename,
-                    page,
-                    chunk_index,
-                    chunk,
-                    embedding <=> %s::vector as distance
-                    from documents
-                    where filename =%s
-                    order by embedding <=> %s::vector
-                    limit %s;
-                    """,
-                    (
-                        embedding_str,
-                        filename,
-                        embedding_str,
-                        limit
-                    ),
-                )
-            else:
-                cur.execute(
-                    """
-                    select 
+        embedding_str="["+",".join(map(str,query_embedding))+"]"
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                if filename:
+                    cur.execute(
+                        """
+                        select
                         id,
                         filename,
                         page,
                         chunk_index,
                         chunk,
-                        embedding <=> %s::vector as distance
-                    from documents
-                    order by embedding <=> %s::vector
-                    limit %s;
-                    """,
-                (
-                     embedding_str,
-                     embedding_str,
-                     limit,
-                ),
-                )
-            print("Searching in:", filename)
-            results= cur.fetchall()
+                        (
+                            (embedding <=> %s::vector) *0.7
+                            +
+                            (1- ts_rank(search_vector,plainto_tsquery('simple',%s)))*0.3 )
+                            as distance
+                        from documents
+                        where filename =%s
+                        order by distance
+                        limit %s;
+                        """,
+                        (
+                          embedding_str,
+                          query,
+                          filename,
+                          limit,
+                        ),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        select 
+                            id,
+                            filename,
+                            page,
+                            chunk_index,
+                            chunk,
+                            (
 
-            for row in results:
-                print("="*50)
-                print(f"Page:{row[2]}")
-                print(row[4][:500])
-                print()
-            return results
-            
+                                (embedding <=> %s::vector ) *0.7
+                                +
+                                (1- ts_rank(search_vector,plainto_tsquery('simple',%s)))*0.3)
+                                as distance
+                        from documents
+                        order by distance
+                        limit %s;
+                        """,
+                    (
+                        embedding_str,
+                        query,
+                        limit,
+                    ),
+                    )
+                print("Searching in:", filename)
+                results= cur.fetchall()
+
+                for row in results:
+                    print(f"{row[1]} | Sayfa {row[2]} | Distance: {row[5]:.4f}")
+
+                return results
+
+    except psycopg.Error as e:
+        print(f"[Databese Error] {e}")
+        raise
+
+    except Exception as e:
+        print(f"[Search error] {e}")
+        raise
 
 if __name__=="__main__":
     results=search_documents("bellek nedir")

@@ -14,71 +14,90 @@ def answer_question(
         question:str,
         filename:str |None=None,
     ):
-    add_message(
-        "user",
-        question,
-    )
-    search_query=build_search_query()
-    print(f"\nSearch Query: {search_query}")
-    documents=search_documents(search_query,filename=filename)
-
-    if not documents:
+    try:
         add_message(
-            "assistant",
-            "I don't know."
+            "user",
+            question,
         )
-        return "I don't know", []
+        search_query=build_search_query(question)
+        print(f"\nSearch Query: {search_query}")
+        documents=search_documents(search_query,filename=filename)
 
-    context="\n\n".join(
-                row[4] for row in documents
-    )
+        print("=" * 60)
+        print("Retrieved Documents")
+        print("=" * 60)
 
-    history="\n".join(
-        f"{m['role'].capitalize()}: {m['content']}"
-        for m in get_recent_history()
-    )
+        for d in documents:
+            print(f"{d[1]} | Page {d[2]} | Score {d[5]:.4f}")
+        
+        if not documents:
+            add_message(
+                "assistant",
+                "I don't know."
+            )
+            return "I don't know", []
 
-    prompt = f"""
-                You are a Retrieval-Augmented Generation (RAG) assistant.
+        context="\n\n".join(
+                    row[4][:500] for row in documents
+        )
 
-                Conversation History:
-                {history}
+        print("=" * 80)
+        print(context)
+        print("=" * 80)
 
-                Retrieved Context:
-                {context}
+        history="\n".join(
+            f"{m['role'].capitalize()}: {m['content']}"
+            for m in get_recent_history()
+        )
 
-                Current Question:
-                {question}
+        prompt = f"""
+                   You are a Retrieval-Augmented Generation (RAG) assistant.
 
-                Rules:
-                - Answer ONLY using the Retrieved Context.
-                - Use the Conversation History only to understand references such as "it", "its advantages", "that topic", etc.
-                - Never use your own knowledge.
-                - Never guess.
-                - If the answer is not explicitly present in the Retrieved Context, reply exactly:
+                    Conversation History:
+                    {history}
 
-                I don't know.
+                    Retrieved Context:
+                    {context}
 
-                Answer:
-                """
+                    Current Question:
+                    {question}
+
+                    Rules:
+
+                    - Answer ONLY from the Retrieved Context.
+                    - Do NOT use your own knowledge.
+                    - Do NOT invent information.
+                    - Do NOT add suggestions.
+                    - Do NOT explain beyond the retrieved text.
+                    - If the answer is incomplete in the context, answer only with the available information.
+                   If the retrieved context is related to the question but does not containan explicit definition, explain what is available in the retrieved context.
+                    
+                    Only answer "I don't know." if the retrieved context is completely unrelated.
+
+                    Write the answer in Turkish.
+                    """
+        
+        messages=[]
+
+        messages.extend(get_history())
+
+        messages.append(
+            {
+                "role":"user",
+                "content":prompt,
+            }
+        )
+
+
+        answer=ask_llm(messages)
+
+        add_message("assistant",answer)
     
-    messages=[]
+        return answer,documents 
 
-    messages.extend(get_history())
-
-    messages.append(
-        {
-            "role":"user",
-            "content":prompt,
-        }
-    )
-
-
-    answer=ask_llm(messages)
-
-    add_message("assistant",answer)
-   
-    return answer,documents 
+    except Exception as e:
+        print(f"[Pipeline Error] {e}")
+        raise
 
 if __name__=="__main__":
     while True:

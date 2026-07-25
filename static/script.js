@@ -210,7 +210,7 @@ async function sendQuestion(){
         </div>
         `;
 
-        console.error(err);
+        showToast(err.message);
 
     }
 
@@ -263,7 +263,7 @@ async function loadDocuments() {
       const div=document.createElement("div");
       div.className="document";
 
-      if (selectDocument===doc){
+      if (selectedDocument===doc){
         div.classList.add("selected");
       }
       div.textContent="📄 " + doc;
@@ -345,7 +345,7 @@ async function deleteDocuments(filename) {
     
     const response=await fetch(`/document/${encodeURIComponent(filename)}`,{method:"DELETE"});
 
-    if (selectDocument===filename){
+    if (selectedDocument===filename){
         selectedDocument=null;
     }
     

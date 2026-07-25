@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request,UploadFile,File
+from fastapi import FastAPI, Request,UploadFile,File,HTTPException
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
@@ -56,21 +56,30 @@ def chat(data:ChatRequest):
 def upload_pdf(file:UploadFile=File(...)):
 
     documents=Path("documents")
-
     documents.mkdir(exist_ok=True)
+
 
     filepath=documents / file.filename
 
-    with open(filepath,"wb") as buffer:
+    try:
+        with open(filepath,"wb") as buffer:
 
-        shutil.copyfileobj(file.file,buffer)
+            shutil.copyfileobj(file.file,buffer)
 
-    ingest_pdf(filepath)
+        ingest_pdf(filepath)
     
-    return{
+        return{
         "message":"uploaded",
         "filename":file.filename
-    }        
+        }
+    except Exception as e:
+        if filepath.exists():
+            filepath.unlink()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"PDF upload failed: {str(e)}"
+        )        
 
 @app.get("/documents")
 def documents():

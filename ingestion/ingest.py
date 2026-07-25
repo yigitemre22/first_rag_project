@@ -9,47 +9,53 @@ def ingest_pdf(pdf_path:Path):
 
     filename=pdf_path.name
 
-    if document_exists(filename):
-        print(f"{filename} already exist")
-        return
+    try:
+        if document_exists(filename):
+            print(f"{filename} already exist")
+            return
 
-    pages=read_pdf_pages(pdf_path)
+        pages=read_pdf_pages(pdf_path)
 
-    chunks=[]
+        chunks=[]
 
-    for page in pages:
-        page_chunks=chunk_text(page["text"])
+        for page in pages:
+            page_chunks=chunk_text(page["text"])
 
-        for i,chunk in enumerate(page_chunks,start=1):
+            for i,chunk in enumerate(page_chunks,start=1):
 
-            chunks.append({
-                "page":page["page"],
-                "chunk_id":i,
-                "chunk":chunk,
-            })
+                chunks.append({
+                    "page":page["page"],
+                    "chunk_id":i,
+                    "chunk":chunk,
+                })
 
-    embeddings=generate_embeddings(
-            [c["chunk"] for c in chunks]
-        )
-
-    for info,embedding in zip(chunks,embeddings):
-
-            doc_id=insert_document(
-                filename,
-                info["page"],
-                info["chunk_id"],
-                info["chunk"],
-                embedding,
+        embeddings=generate_embeddings(
+                [c["chunk"] for c in chunks]
             )
 
-            print(
-                f"[Page {info['page']}]"
-                f"[Chunk {info['chunk_id']}]"
-                f"[Inserted document id={doc_id}]"
-            )
+        for info,embedding in zip(chunks,embeddings):
 
-    print(f"\n {filename} uploaded.")
-    print(f"Total chunks:{len(chunks)}")
+                doc_id=insert_document(
+                    filename,
+                    info["page"],
+                    info["chunk_id"],
+                    info["chunk"],
+                    embedding,
+                )
+
+                print(
+                    f"[Page {info['page']}]"
+                    f"[Chunk {info['chunk_id']}]"
+                    f"[Inserted document id={doc_id}]"
+                )
+
+        print(f"\n {filename} uploaded.")
+        print(f"Total chunks:{len(chunks)}")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to ingest {filename}")
+        print(e)
+        raise
 
 
 def ingest_all():
