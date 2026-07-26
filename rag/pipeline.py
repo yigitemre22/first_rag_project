@@ -10,6 +10,7 @@ from memory.conversation import(
     get_recent_history,
     build_search_query,
 )
+from retriever.reranker import rerank
 def answer_question(
         question:str,
         filename:str |None=None,
@@ -22,6 +23,7 @@ def answer_question(
         search_query=build_search_query(question)
         print(f"\nSearch Query: {search_query}")
         documents=search_documents(search_query,filename=filename)
+        documents=rerank(question,documents,top_k=5)
 
         print("=" * 60)
         print("Retrieved Documents")
@@ -38,7 +40,15 @@ def answer_question(
             return "I don't know", []
 
         context="\n\n".join(
-                    row[4][:500] for row in documents
+                   f"""
+                    Source:
+                    File:{row[1]}
+                    Page:{row[2]}
+                    
+                    Content:
+                    {row[4][:800]}
+                    """
+                    for row in documents
         )
 
         print("=" * 80)
@@ -71,7 +81,13 @@ def answer_question(
                     - Do NOT explain beyond the retrieved text.
                     - If the answer is incomplete in the context, answer only with the available information.
                    If the retrieved context is related to the question but does not containan explicit definition, explain what is available in the retrieved context.
-                    
+                    When answering:
+                    - Write a natural answer.
+                    - Summarize the information instead of copying sentences.
+                    - Combine information from multiple chunks.
+                    - Do not repeat the same sentence.
+                    - If the answer does not exist in the retrieved context, reply exactly:
+                    I don't know.
                     Only answer "I don't know." if the retrieved context is completely unrelated.
 
                     Write the answer in Turkish.

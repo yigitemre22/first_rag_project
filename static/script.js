@@ -149,10 +149,9 @@ async function sendQuestion(){
                 sourcesHTML += `
                 <li>
 
-                    ${source.filename}
+                    <b>${source.filename}</b><br>
 
-                    - Sayfa ${source.page}
-
+                    Sayfalar: ${source.pages.join(", ")}    
                 </li>
                 `;
             });
@@ -293,8 +292,8 @@ async function loadDocuments() {
 
     document.getElementById("selected-file").innerText=
         selectedDocument 
-        ? "Selected:" + selectedDocument
-        : "All Document";
+        ? "📄 Searching:" + selectedDocument
+        : "🌍 Searching: All Documents";
 }
 
 function selectDocument(doc) {

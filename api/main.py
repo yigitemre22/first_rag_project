@@ -9,7 +9,7 @@ from ingestion.ingest import ingest_pdf
 from database.vectore_store import get_documents,delete_document_by_filename
 from memory.chat_memory import clear_history as clear_chat_history
 from memory.conversation import clear_history as clear_conversation_history
-
+from collections import defaultdict
 
 app = FastAPI()
 
@@ -36,17 +36,18 @@ def home(request: Request):
 def chat(data:ChatRequest):
     answer,documents=answer_question(data.question,data.filename,)
 
-    sources=[]
+    grouped=defaultdict(set)
 
     for doc in documents:
-        sources.append(
-            {
-                "filename":doc[1],
-                "page":doc[2],
-                "chunk":doc[3],
-                "distance":doc[5],
-            }
-        )
+        grouped[doc[1]].add(doc[2])  #filename->page
+
+    sources=[]
+
+    for filename,pages in grouped.items():
+        sources.append({
+            "filename":filename,
+            "pages":sorted(list(pages))
+        })
     return {
         "answer":answer,
         "sources":sources
