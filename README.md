@@ -3,7 +3,7 @@
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/rag-project.git
+git clone https://github.com/yigitemre22/first_rag_project.git
 cd rag-project
 ```
 
